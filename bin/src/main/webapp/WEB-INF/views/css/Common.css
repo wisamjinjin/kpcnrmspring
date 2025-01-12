@@ -1,0 +1,139 @@
+/* 전체 페이지 스크롤 방지 */
+body {
+    /* overflow: hidden; */
+    display: flex;
+    font-family: Arial, sans-serif;
+    margin: 0; /* 기본 마진 제거 */
+    justify-content: center;
+    align-items: center;
+  }
+  .common-container {
+    font-size: 16px; /* 폰트 크기 */
+    padding: 0px;
+    display: flex;
+    flex-direction: column;
+    height:max-content;
+  }
+
+  .columflex-container {
+    display: flex;
+    flex-direction: column; /* 세로(column) 방향으로 배치 */
+    align-items: center; /* 버튼과 이미지가 같은 줄에 수평으로 정렬 */
+    margin-bottom: 5px; /* 항목 간의 간격 */
+  }
+  
+  .rowflex-container {
+    display: flex;
+    justify-content: space-between; /* 버튼 사이의 간격 조정 (필요 시) */
+    gap: 5px; /* 버튼 간의 간격 추가 */
+    align-items: center; /* 세로축에서 가운데 정렬 */
+  }
+  .message-box {
+    margin: 10px 0;           /* 상단 및 하단 마진 10px, 좌우 마진 0 */
+    text-align: center;       /* 텍스트 중앙 정렬 */
+    border: none;             /* 테두리 없음 */
+    padding: 15px;            /* 내부 여백 추가 (선택 사항) */
+    background-color: #f9f9f9;/* 배경색 지정 (선택 사항) */
+    border-radius: 5px;       /* 모서리 둥글게 (선택 사항) */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 그림자 효과 (선택 사항) */
+ }
+
+  .input-box {
+    width: 500px;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    height: auto;
+  }
+  input, select{
+    width: 100%;
+    height: 50px;
+    margin-top: 5px;
+    margin-bottom: 2px;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+  }
+  .medium-button {
+    width: 200px;
+    height: 30px;
+    padding: 10px;
+    border: 1px solid #918e8e;
+    background-color: #f8fafc;
+    color: #2e2d2d;
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .medium-button:hover {
+    background-color: #e2e8f0; /* hover 시 배경 색상 변경 */
+  }
+
+  .medium-button:disabled {
+      background-color: #e0e0e0; /* 비활성화 상태일 때 배경 색상 변경 */
+      color: #a1a1a1; /* 비활성화 상태일 때 텍스트 색상 변경 */
+      border: 1px solid #ccc; /* 비활성화 상태일 때 테두리 색상 변경 */
+      cursor: not-allowed; /* 비활성화 상태일 때 커서 금지 모양으로 변경 */
+  }
+
+  /* 비활성화 상태일 때 hover 금지 */
+  .medium-button:disabled:hover {
+      background-color: #e0e0e0; /* hover 시에도 비활성화 상태 유지 */
+  }
+
+  .bold-text {
+    font-weight: bold;
+  }
+  ul {
+    list-style-type: none; /* Bullet 제거 */
+    padding: 0; /* 기본 패딩 제거 */
+    margin: 0; /* 기본 마진 제거 */
+ }
+
+  table {
+    width: 100%;
+    font-size: 16px; /* 원하는 폰트 크기로 설정 */
+    border-collapse: collapse; /* 테두리 겹침 방지 */
+
+  }
+  th, td {
+    border: 1px solid #ddd; /* 연한 회색 테두리 */
+    font-size: 16px; /* 원하는 글자 크기로 설정 */
+  }
+
+  th {
+    background-color: #f4f4f4; /* 헤더 배경색 */
+  }
+  table input {
+    border: none; /* 테두리 제거 */
+    outline: none; /* 포커스 시 테두리 제거 */
+  }
+  table select {
+    border: none; /* 테두리 제거 */
+    outline: none; /* 포커스 시 테두리 제거 */
+  }
+
+  .small-radio-button label, input[type="radio"] {
+    width: 20px; /* 버튼의 너비 조정 */
+    height: 20px; /* 버튼의 높이 조정 */
+    margin-right: 5px; /* 버튼과 텍스트 사이의 간격 조정 */
+    vertical-align: middle; /* 버튼과 텍스트를 수평으로 맞춤 */
+    font-size: 12px;
+  }
+  .bold-text {
+    font-weight: bold;
+  }
+  .xsmall {
+    font-size: 10px;
+  }
+    /* Add media queries for responsiveness */
+    @media (max-width: 600px) {
+      .common-container {
+        /* Add responsive styles as needed */
+      }
+      .input-box {
+        /* Add responsive styles as needed */
+      }
+  }

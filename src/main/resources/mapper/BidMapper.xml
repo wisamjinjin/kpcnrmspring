@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jinjin.bidsystem.mapper.BidMapper">
+            
+    <!-- 좌석번호별 입찰자 수와 최고 입찰 금액 조회 -->
+<select id="getBidsBySeatArray" parameterType="hashmap" resultType="hashmap">
+    SELECT 
+        p.seat_no,
+        p.seat_price,
+        b.row_no,
+        b.col_no,
+        COALESCE(COUNT(DISTINCT b.bid_telno), 0) AS total_bidders,
+        COALESCE(MAX(b.bid_amount), 0) AS current_bid_amount
+    FROM
+        seatprice AS p
+    LEFT JOIN 
+        bids AS b
+    ON 
+        p.seat_no = b.seat_no AND p.match_no = b.match_no
+    WHERE
+        p.match_no = #{matchNumber}
+        <if test="seatNoArray != null and seatNoArray.size() > 0">
+            AND p.seat_no IN 
+            <foreach item="seatNo" collection="seatNoArray" open="(" separator="," close=")">
+                #{seatNo}
+            </foreach>
+        </if>
+    GROUP BY
+        p.seat_no
+    ORDER BY
+        CAST(p.seat_no AS UNSIGNED) ASC;
+</select>
+
+
+    <!-- 좌석번호별 입찰자 수와 최고 입찰 금액 조회 -->
+    <select id="getBidTallies" parameterType="hashmap" resultType="hashmap">
+        SELECT 
+            b.seat_no, 
+            b.row_no,
+            b.col_no,
+            p.seat_price,
+            COALESCE(COUNT(DISTINCT b.bid_telno), 0) AS total_bidders,
+            COALESCE(MAX(b.bid_amount), 0) AS current_bid_amount
+        FROM 
+            bids AS b
+        LEFT JOIN 
+            seatprice AS p
+        ON 
+            p.seat_no = b.seat_no AND p.match_no = b.match_no
+        WHERE
+            b.match_no = #{matchNumber}
+        GROUP BY
+            b.seat_no
+        ORDER BY
+            CAST(b.seat_no AS UNSIGNED) ASC;
+
+    </select>
+
+    <!-- 좌석번호별 입찰내역 입찰자 명 -->
+    <select id="getAllBids" parameterType="hashmap" resultType="hashmap">
+    SELECT 
+            b.match_no,
+            b.seat_no,
+            b.bid_amount,
+            b.bid_at,
+            b.bid_won,
+            b.bid_paid,
+            u.username
+        FROM 
+            bids AS b
+        JOIN biduser AS u
+            ON b.bid_telno = u.telno
+            WHERE
+                b.match_no = #{matchNumber}
+            ORDER BY
+                CAST(b.seat_no AS UNSIGNED) ASC;
+    </select>
+
+    <select id="getHighestBids" parameterType="hashmap" resultType="hashmap">
+    SELECT 
+        b.match_no,
+        b.seat_no,
+        b.bid_amount,
+        b.bid_at,
+        b.bid_won,
+        b.bid_paid,
+        u.username,
+        (
+            SELECT COUNT(DISTINCT b2.bid_telno)
+            FROM bids AS b2
+            WHERE b2.match_no = b.match_no
+            AND b2.seat_no = b.seat_no
+        ) AS total_bidders,
+        (
+            SELECT COUNT(*)
+            FROM bids AS b3
+            WHERE b3.match_no = b.match_no
+            AND b3.seat_no = b.seat_no
+        ) AS total_bids
+    FROM 
+        bids AS b
+    JOIN biduser AS u
+        ON b.bid_telno = u.telno
+    WHERE 
+        b.bid_amount = (
+            SELECT MAX(b1.bid_amount)
+            FROM bids AS b1
+            WHERE b1.match_no = b.match_no
+            AND b1.seat_no = b.seat_no
+        )
+        AND b.match_no = #{matchNumber}
+    ORDER BY 
+        CAST(b.seat_no AS UNSIGNED) ASC;
+
+    </select>
+
+    <select id="getAwardedBidsByMatch" parameterType="hashmap" resultType="hashmap">
+        SELECT 
+            b.match_no,
+            b.bid_telno,
+            b.seat_no,
+            b.bid_amount,
+            u.username,
+            t.total_bid_amount
+        FROM 
+            bids AS b
+        JOIN 
+            biduser AS u ON b.bid_telno = u.telno
+        JOIN 
+            (SELECT match_no, bid_telno, SUM(bid_amount) AS total_bid_amount
+            FROM bids
+            WHERE bid_won = 'Y'
+            GROUP BY match_no, bid_telno) AS t 
+            ON b.match_no = t.match_no AND b.bid_telno = t.bid_telno
+        WHERE 
+            b.match_no = #{matchNumber}
+            AND b.bid_won = 'Y'
+        GROUP BY 
+            b.match_no,
+            b.bid_telno,
+            b.seat_no,
+            u.username,
+            t.total_bid_amount;
+    </select>
+    
+    <update id="awardBids" parameterType="hashmap">
+        UPDATE bids b
+            JOIN (
+                SELECT seat_no, match_no, MAX(bid_amount) AS max_bid_amount
+                FROM bids
+                WHERE match_no = #{matchNumber}
+                GROUP BY seat_no, match_no
+            ) maxbid
+        ON b.seat_no = maxbid.seat_no
+        AND b.bid_amount = maxbid.max_bid_amount
+        AND b.match_no = maxbid.match_no
+        SET b.bid_won = 'Y';
+    </update>
+
+    <!-- 사용자별 모든 입찰 조회 -->
+    <select id="getMyBids" parameterType="hashmap" resultType="hashmap">
+            SELECT 
+            b.seat_no,
+            b.bid_amount,
+            b.bid_at,
+            b.bid_won,
+            b.bid_paid,
+            (SELECT MAX(bid_amount)
+             FROM bids
+             WHERE seat_no = b.seat_no AND match_no = b.match_no) AS highest_bid_amount
+        FROM 
+            bids AS b
+        WHERE
+            b.bid_telno = #{telno} AND
+            b.match_no = #{matchNumber}
+        ORDER BY
+            b.bid_at
+    </select>
+    
+    <!-- 사용자별 모든 입찰 조회 -->
+    <select id="getMyLastBids" parameterType="hashmap" resultType="hashmap">
+        SELECT 
+            b.row_no,
+            b.col_no,
+            b.seat_no,
+            b.bid_amount,
+            b.bid_at,
+            b.bid_won,
+            b.bid_paid,
+            (SELECT MAX(bid_amount)
+            FROM bids
+            WHERE seat_no = b.seat_no AND match_no = b.match_no) AS highest_bid_amount
+        FROM 
+            bids AS b
+        WHERE
+            b.bid_telno = #{telno} AND
+            b.match_no = #{matchNumber}
+            AND b.bid_at = (
+                SELECT MAX(bid_at)
+                FROM bids
+                WHERE bid_telno = #{telno}
+                AND seat_no = b.seat_no
+                AND match_no = b.match_no
+            )
+        ORDER BY
+            b.seat_no,
+            b.row_no,
+            b.col_no
+    </select>
+
+    <!-- 최대 입찰 금액 조회 -->
+    <select id="getMaxBidAmount" parameterType="hashmap" resultType="hashmap">
+        SELECT match_no, seat_no, MAX(bid_amount) AS max_bid_amount
+        FROM bids
+        WHERE match_no = #{matchNumber} AND seat_no = #{seatNo}
+        FOR UPDATE
+    </select>
+
+    <!-- 여러 건의 사용자 입찰 등록 -->
+    <insert id="submitBid" parameterType="hashmap" >
+        INSERT INTO bids (match_no, seat_no, bid_telno, bid_amount, bid_at)
+        VALUES (#{matchNumber}, #{seatNo}, #{telno}, #{bidAmount}, #{bidAt});
+    </insert>
+
+    <!-- 낙찰건에 결제 요청 oid 기록 -->
+    <update id="updateBidOid" parameterType="hashmap" >
+        UPDATE bids
+        SET pay_oid = #{oid}
+        WHERE bid_telno = #{telno}
+            AND match_no = #{matchNumber}
+            AND bid_won = 'Y';
+    </update>
+
+
+    <!-- 승인된 건에 대해 결제완료 flag 갱신 -->
+    <update id="updateBidPayment" parameterType="hashmap" >
+        UPDATE bids
+        SET bid_paid = 'Y'
+        WHERE pay_oid = #{oid}
+    </update>
+
+</mapper>

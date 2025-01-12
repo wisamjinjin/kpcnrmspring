@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jinjin.bidsystem.mapper.MatchMapper">
+
+    <!-- 입찰 상태 조회 -->
+    <select id="getMatchStatus" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            m.*,
+            v.venue_name
+        FROM
+            matches AS m
+        JOIN venue_code v ON m.venue_cd = v.venue_cd
+        WHERE
+            m.match_no = #{matchNumber}
+    </select>
+
+    <!-- 모든 경기 조회 -->
+    <select id="getAllMatches" parameterType="hashmap" resultType="hashmap">
+        SELECT 
+            m.*,
+            v.venue_name
+        FROM 
+            matches m
+        JOIN 
+            venue_code v ON m.venue_cd = v.venue_cd
+        WHERE
+            m.venue_cd = #{venueCd}
+    </select>
+
+    <!-- 특정 관리자가 생성한 경기 조회 -->
+    <select id="getMyMatches" parameterType="hashmap" resultType="hashmap">
+        SELECT 
+            m.*,
+            v.venue_name
+        FROM 
+            matches m
+        JOIN 
+            venue_code v ON m.venue_cd = v.venue_cd
+        WHERE
+            m.created_by = #{telno}
+            AND m.venue_cd = #{venueCd};
+
+    </select>
+
+    <!-- 모든 승인된 경기 조회 - 사용자 용-->
+    <select id="getAllApprovedMatches" parameterType="hashmap" resultType="hashmap">
+        SELECT 
+            m.*,
+            v.venue_name
+        FROM 
+            matches m
+        JOIN 
+            venue_code v ON m.venue_cd = v.venue_cd
+        WHERE 
+            m.approved = 'Y' 
+            AND m.venue_cd = #{venueCd}
+            AND m.is_bid_available = 'Y';
+
+    </select>
+
+    <!-- 경기번호 채번을 위한 최대 match_no 조회 -->
+    <select id="getMaxMatchNo" resultType="int">
+        SELECT COALESCE(MAX(match_no), 0) FROM matches
+    </select>
+
+    <!-- 경기 추가 -->
+    <insert id="addMatch" parameterType="map">
+        INSERT INTO matches (
+            match_no, venue_cd, match_name, round, start_date, start_time, end_time, bid_open_datetime, bid_close_datetime,
+            is_bid_available, filename_attached, pay_due_datetime, created_by
+        )
+        VALUES (
+            #{matchNumber}, #{venueCd}, #{matchName}, #{round}, #{startDate}, #{startTime}, #{endTime}, #{bidOpenTime}, #{bidCloseTime},
+            #{isBidAvailable}, #{fileName}, #{payDue}, #{telno}
+        )
+    </insert>
+    
+
+    <!-- 경기 수정 -->
+    <update id="updateMatch" parameterType="hashmap">
+        UPDATE matches
+        SET 
+            venue_cd = #{venueCd},
+            match_name = #{matchName},
+            round = #{round}, 
+            start_date = #{startDate}, 
+            start_time = #{startTime}, 
+            end_time = #{endTime}, 
+            bid_open_datetime = #{bidOpenTime}, 
+            bid_close_datetime = #{bidCloseTime}, 
+            is_bid_available = #{isBidAvailable}, 
+            pay_due_datetime = #{payDue},
+            updated_by = #{telno}, 
+            updated_at = CURRENT_TIMESTAMP, 
+            filename_attached = #{fileName}
+        WHERE match_no = #{matchNumber}
+    </update>
+
+    <!-- 일괄 입찰 등록 -->
+    <update id="batchBid" parameterType="hashmap">
+        UPDATE matches
+        SET 
+            reserved = 'Y',
+            reserved_amount = #{bidAmount},
+            reserved_at = CURRENT_TIMESTAMP
+        WHERE match_no = #{matchNumber}
+    </update>
+
+    <!-- 일괄 입찰 승인 -->
+    <update id="approveBatchBid" parameterType="hashmap">
+        UPDATE matches
+        SET 
+            reserved_approval = 'Y',
+            reserved_approval_at = CURRENT_TIMESTAMP
+        WHERE match_no = #{matchNumber}
+    </update>
+
+    <!-- 경기 승인 -->
+    <update id="approveMatch" parameterType="hashmap">
+        UPDATE matches
+        SET 
+            approved = #{actionType}, 
+            approved_by = #{telno}, 
+            updated_at = CURRENT_TIMESTAMP
+        WHERE match_no = #{matchNumber}
+    </update>
+
+    <!-- 경기 삭제 -->
+    <delete id="deleteMatch" parameterType="hashmap">
+        DELETE FROM matches WHERE match_no = #{matchNumber}
+    </delete>
+
+    <!-- 경기 상태 업데이트 : 낙찰완료 -->
+    <update id="updateMatchAwardStatus" parameterType="hashmap">
+        UPDATE matches
+        SET bid_open_status = 'F'
+        WHERE match_no = #{matchNumber};
+    </update>
+
+    <!-- 경기 상태 업데이트 : 알림톡 송신 완료 -->
+    <update id="updateMatchAlimtalkStatus" parameterType="hashmap">
+        UPDATE matches
+        SET 
+            alimtalk_sent = 'Y',
+            alimtalk_sent_at = CURRENT_TIMESTAMP
+        WHERE 
+            match_no = #{matchNumber};
+
+    </update>
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jinjin.bidsystem.mapper.SeatPriceMapper">
+
+    <!-- 좌석별 가격 조회 -->
+    <select id="getSeatPrices" parameterType="hashmap" resultType="hashmap">
+        SELECT * FROM seatprice WHERE match_no = #{matchNumber} ORDER BY CAST(seat_no AS UNSIGNED) ASC
+    </select>
+
+    <!-- 좌석별 가격 입력 또는 갱신 -->
+    <insert id="updateSeatPrice" parameterType="hashmap">
+        INSERT INTO seatprice (seat_no, match_no, seat_price, row_no, col_no)
+        VALUES (#{seatNo}, #{matchNumber}, #{seatPrice}, #{rowNo}, #{colNo})
+        ON DUPLICATE KEY UPDATE
+            seat_price = VALUES(seat_price),
+            row_no = VALUES(row_no),
+            col_no = VALUES(col_no)
+    </insert>
+
+    <!-- 여러 좌석 정보 갱신혹은 생성 -->
+    <insert id="updateSeatPriceArray" parameterType="hashmap">
+        INSERT INTO seatprice (seat_no, match_no, seat_price, row_no, col_no) VALUES
+        <foreach collection="seatPriceArray" item="seat" separator=",">
+            (#{seat.seat_no}, #{seat.matchNumber}, #{seat.seat_price}, #{seat.row_no}, #{seat.col_no})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            seat_price = VALUES(seat_price),
+            row_no = VALUES(row_no),
+            col_no = VALUES(col_no);
+    </insert>
+
+
+<!-- 여러 좌석 정보 삭제 -->
+<delete id="deleteSeatPriceArray" parameterType="hashmap">
+    DELETE FROM seatprice
+    WHERE match_no = #{matchNumber}
+    AND seat_no IN
+    <foreach collection="seatPriceArray" item="seat" open="(" separator="," close=")">
+        #{seat.seat_no}
+    </foreach>
+</delete>
+
+
+</mapper>

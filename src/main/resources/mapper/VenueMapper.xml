@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jinjin.bidsystem.mapper.VenueMapper">
+    <!-- 모든 경기장 조회 -->
+    <select id="getAllVenues" resultType="hashmap">
+        SELECT * FROM venue_code WHERE 1=1
+    </select>
+
+    <!-- 특정 경기장 조회 -->
+    <select id="getVenueByCode" parameterType="hashmap" resultType="hashmap">
+        SELECT * FROM venue_code WHERE venue_cd = #{venueCd}
+    </select>
+
+    <!-- 경기장 추가 -->
+    <insert id="addVenue" parameterType="hashmap">
+        INSERT INTO venue_code (venue_cd, venue_name, venue_place_info, venue_general_info, venue_img_file)
+        VALUES (#{venueCd}, #{venueName}, #{venuePlaceInfo}, #{venueGeneralInfo},#{venueImageFileName})
+    </insert>
+
+    <!-- 경기장 수정 -->
+    <update id="updateVenue" parameterType="hashmap">
+        UPDATE venue_code
+        SET 
+            venue_name = #{venueName}, 
+            venue_place_info = #{venuePlaceInfo}, 
+            venue_general_info = #{venueGeneralInfo},
+            venue_img_file = #{venueImageFileName}
+        WHERE venue_cd = #{venueCd}
+    </update>
+
+    <!-- 경기장 삭제 -->
+    <delete id="deleteVenue" parameterType="hashmap">
+        DELETE FROM venue_code WHERE venue_cd = #{venueCd}
+    </delete>
+
+</mapper>

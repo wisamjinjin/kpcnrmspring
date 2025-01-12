@@ -1,0 +1,1 @@
+import{u as t}from"./urls.d05eee06.js";const m=(l,c,r,n=null)=>{var s;const o=(s=t[r])==null?void 0:s[c];o?l.push({name:o,...n&&{query:n}}).catch(a=>console.error("\uB77C\uC6B0\uD305 \uC5D0\uB7EC:",o,n,a.message||a)):console.warn("\uC720\uD6A8\uD558\uC9C0 \uC54A\uC740 url\uC785\uB2C8\uB2E4.------------ :",o)};export{m as n};

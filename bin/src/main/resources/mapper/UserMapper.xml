@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jinjin.bidsystem.mapper.UserMapper">
+
+    <!-- 사용자 정보 조회 (ID 또는 전화번호 등) -->
+    <select id="getUserByQuery" parameterType="hashmap" resultType="hashmap">
+        SELECT * 
+        FROM biduser 
+        WHERE
+        <choose>
+            <when test="queryType == 'userid'">
+                userid = #{query}
+            </when>
+            <when test="queryType == 'telno'">
+                telno = #{query}
+            </when>
+            <when test="queryType == 'email'">
+                email = #{query}
+            </when>
+            <when test="queryType == 'both'">
+                telno = #{query} OR email = #{query}
+            </when>
+            <otherwise>
+                1 = 0 <!-- 잘못된 필드명이 들어왔을 경우 아무 결과도 반환하지 않도록 -->
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 중복확인용 email 건수 확인 -->
+    <select id="getEmailCount" parameterType="hashmap" resultType="hashmap">
+        SELECT COUNT(*) AS email_count
+        FROM biduser
+        WHERE telno != #{telno} AND
+            email = #{email}
+    </select>
+
+    <!-- 중복확인용 telno 건수 확인 -->
+    <select id="getTelnoCount" parameterType="hashmap" resultType="hashmap">
+        SELECT COUNT(*) AS telno_count
+        FROM biduser
+        WHERE telno = #{telno}
+    </select>
+
+    <!-- 사용자 등록 -->
+    <insert id="registerUser" parameterType="hashmap">
+        INSERT INTO biduser (userid, password, username, email, telno, postcode, addr1, addr2, createdat)
+        VALUES (#{userId}, #{password}, #{userName}, #{email}, #{telno}, #{postCode}, #{addr1}, #{addr2}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <!-- 사용자 정보 수정 CamelCase가 아님을 유의 --> 
+    <update id="updateUser" parameterType="hashmap">
+        UPDATE biduser
+        <set>
+            <if test="username != null"> username = #{username}, </if>
+            <if test="email != null"> email = #{email}, </if>
+            <if test="telno != null"> telno = #{telno}, </if>
+            <if test="postcode != null"> postcode = #{postcode}, </if>
+            <if test="addr1 != null"> addr1 = #{addr1}, </if>
+            <if test="addr2 != null"> addr2 = #{addr2} </if>
+        </set>
+        WHERE telno = #{telno}
+    </update>
+
+    <!-- 비밀번호 변경 -->
+    <update id="changePassword" parameterType="hashmap">
+        UPDATE biduser
+        SET password = #{newPassword}
+        WHERE telno = #{telno}
+    </update>
+
+</mapper>
